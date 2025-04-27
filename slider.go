@@ -1,13 +1,14 @@
-package slider
+package main
 
 import (
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SliderImages(router *gin.Engine) { // capital S
+func SliderImages(router *gin.Engine) {
 	router.GET("/images", func(c *gin.Context) {
 		files, err := os.ReadDir("./Image")
 		if err != nil {
@@ -27,4 +28,14 @@ func SliderImages(router *gin.Engine) { // capital S
 			"count":  len(imageURLs),
 		})
 	})
+}
+
+func isImageFile(filename string) bool {
+	ext := filepath.Ext(filename)
+	switch ext {
+	case ".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif":
+		return true
+	default:
+		return false
+	}
 }
