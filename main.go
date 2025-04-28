@@ -18,7 +18,9 @@ func main() {
 	config.AllowWildcard = true
 	router.Use(cors.New(config))
 
-	SliderImages(router) // Direct call since it's in the same package
+	// Add routes
+	SliderImages(router)
+	CRUDRoutes(router) // Add the CRUD routes
 
 	// Serve static image files
 	router.Static("/images", "./Image")
