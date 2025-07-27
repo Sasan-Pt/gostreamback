@@ -19,7 +19,7 @@ var people = []Person{
 
 func CRUDRoutes(router *gin.Engine) {
 	// Create - POST /people
-	router.POST("/people", func(c *gin.Context) {
+	router.POST("/people/", func(c *gin.Context) {
 		var newPerson Person
 		if err := c.BindJSON(&newPerson); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
