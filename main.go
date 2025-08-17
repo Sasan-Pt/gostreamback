@@ -1,11 +1,18 @@
 package main
 
 import (
+	"streamSite/db"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	// Initialize database
+	if err := db.InitDB(); err != nil {
+		panic("Failed to initialize database: " + err.Error())
+	}
+	
 	router := gin.Default()
 
 	// Configure CORS to allow all origins and headers
@@ -21,6 +28,7 @@ func main() {
 	// Add routes
 	SliderImages(router)
 	CRUDRoutes(router) // Add the CRUD routes
+	LANDINGPAGE(router)
 
 	// Serve static image files
 	router.Static("/images", "./Image")
