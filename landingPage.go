@@ -23,6 +23,20 @@ func LANDINGPAGE(router *gin.Engine) {
 			"data": mainPage,
 		})
 	})
+	router.GET("/recentUploads", func(c *gin.Context) {
+		// Query the manPage table from the database
+		recentUploads, err := db.GetAllImages()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to fetch data from database: " + err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"data": recentUploads,
+		})
+	})
 
 	// Get a specific manPage by ID
 	// router.GET("/mainPage/:id", func(c *gin.Context) {

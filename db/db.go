@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -15,17 +16,32 @@ var DB *sql.DB
 type ManPage struct {
     DropDownMenu []string `json:"dropDownMenu"`
 }
+
+type RecentImages struct {
+	ID      int    `json:"id" db:"id"`
+	Name    string `json:"name" db:"name"`
+	Summary string `json:"summary" db:"summary"`
+	Link    string `json:"link" db:"link"`
+}
+
 func InitDB() error {
-	var err error
-	DB, err = sql.Open("sqlite3", "./api.db")
-	if err != nil {
-		return err
-	}
+    var err error
+    DB, err = sql.Open("sqlite3", "./api.db")
+    if err != nil {
+        return err
+    }
 
     DB.SetMaxOpenConns(10)
     DB.SetMaxIdleConns(5)
 
-    return CreateTables()
+    if err := CreateTables(); err != nil {
+        return err
+    }
+    if err := CreateImageTable(); err != nil {
+        return err
+    }
+
+    return nil
 }
 
 // CreateTables ensures required tables exist
@@ -42,6 +58,44 @@ func CreateTables() error {
 
     return nil
 }
+func CreateImageTable() error {
+    createImageTable := `
+    CREATE TABLE IF NOT EXISTS RecentUploads (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        summary TEXT,
+        link TEXT
+    )`
+    _, err := DB.Exec(createImageTable)
+    return err
+}
+
+func GetAllImages() ([]RecentImages, error) {
+    rows, err := DB.Query("SELECT id, name, summary, link FROM RecentUploads")
+    if err != nil {
+        return nil, fmt.Errorf("failed to query database: %w", err)
+    }
+    defer rows.Close()
+
+    fmt.Println(rows,"rows")
+    var images []RecentImages
+    for rows.Next() {
+        var img RecentImages
+        
+        if err := rows.Scan(&img.ID, &img.Name, &img.Summary, &img.Link); err != nil {
+            return nil, fmt.Errorf("failed to scan row: %w", err)
+        }
+        
+        images = append(images, img)
+    }
+    
+    if err = rows.Err(); err != nil {
+        return nil, fmt.Errorf("error during row iteration: %w", err)
+    }
+    fmt.Println(images,"images")
+    
+    return images, nil
+}
 
 
 
@@ -57,12 +111,11 @@ func GetAllManPages() ([]ManPage, error) {
         var rawJSON string
         var mp ManPage
 
-        // scan raw JSON from DB
+     
         if err := rows.Scan(&rawJSON); err != nil {
             return nil, err
         }
 
-        // unmarshal directly into []string
         if err := json.Unmarshal([]byte(rawJSON), &mp); err != nil {
             return nil, err
         }
