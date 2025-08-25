@@ -12,7 +12,7 @@ func main() {
 	if err := db.InitDB(); err != nil {
 		panic("Failed to initialize database: " + err.Error())
 	}
-	
+
 	router := gin.Default()
 
 	// Configure CORS to allow all origins and headers
@@ -35,3 +35,59 @@ func main() {
 
 	router.Run(":8080")
 }
+
+// package main
+
+// import (
+// 	"database/sql"
+// 	"fmt"
+// 	"log"
+// 	"os"
+
+// 	_ "github.com/mattn/go-sqlite3"
+// )
+
+// func main() {
+
+// 	db, err := sql.Open("sqlite3", "./api.db")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	defer db.Close()
+
+
+// 	imageFolder := "./image"
+
+
+// 	files, err := os.ReadDir(imageFolder)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+
+	
+// 	baseURL := "http://localhost:8080/images/"
+
+
+// 	for _, file := range files {
+// 		if !file.IsDir() {
+			
+// 			imageURL := baseURL + file.Name()
+
+		
+// 			name := file.Name()                     
+// 			summary := "auto imported image"       
+// 			link := imageURL                       
+
+			
+// 			_, err := db.Exec(`
+// 				INSERT INTO RecentUploads (name, summary, link) 
+// 				VALUES (?, ?, ?)
+// 			`, name, summary, link)
+// 			if err != nil {
+// 				log.Println("❌ Failed to insert:", file.Name(), err)
+// 			} else {
+// 				fmt.Println("✅ Inserted:", imageURL)
+// 			}
+// 		}
+// 	}
+// }

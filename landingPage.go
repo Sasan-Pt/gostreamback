@@ -8,9 +8,7 @@ import (
 )
 
 func LANDINGPAGE(router *gin.Engine) {
-	// Get all manPage records
 	router.GET("/mainPage", func(c *gin.Context) {
-		// Query the manPage table from the database
 		mainPage, err := db.GetAllManPages()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -24,8 +22,7 @@ func LANDINGPAGE(router *gin.Engine) {
 		})
 	})
 	router.GET("/recentUploads", func(c *gin.Context) {
-		// Query the manPage table from the database
-		recentUploads, err := db.GetAllImages()
+		recentUploads, err := db.GetRecentUploadsFromDB()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to fetch data from database: " + err.Error(),
@@ -34,7 +31,7 @@ func LANDINGPAGE(router *gin.Engine) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"data": recentUploads,
+			"recentUploads": recentUploads,
 		})
 	})
 

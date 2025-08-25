@@ -70,8 +70,8 @@ func CreateImageTable() error {
     return err
 }
 
-func GetAllImages() ([]RecentImages, error) {
-    rows, err := DB.Query("SELECT id, name, summary, link FROM RecentUploads")
+func GetRecentUploadsFromDB() ([]RecentImages, error) {
+    rows, err := DB.Query("SELECT id, name, summary, link FROM RecentUploads  LIMIT 15 OFFSET 0")
     if err != nil {
         return nil, fmt.Errorf("failed to query database: %w", err)
     }
