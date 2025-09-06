@@ -41,10 +41,11 @@ func InitDB() error {
         return err
     }
 
+
     return nil
 }
 
-// CreateTables ensures required tables exist
+
 func CreateTables() error {
     createManPageTable := `
     CREATE TABLE IF NOT EXISTS manPage (
