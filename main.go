@@ -29,6 +29,7 @@ func main() {
 	SliderImages(router)
 	CRUDRoutes(router) // Add the CRUD routes
 	LANDINGPAGE(router)
+	Schedule(router)
 
 	// Serve static image files
 	router.Static("/images", "./Image")
@@ -55,32 +56,26 @@ func main() {
 // 	}
 // 	defer db.Close()
 
-
 // 	imageFolder := "./image"
-
 
 // 	files, err := os.ReadDir(imageFolder)
 // 	if err != nil {
 // 		log.Fatal(err)
 // 	}
 
-	
 // 	baseURL := "http://localhost:8080/images/"
-
 
 // 	for _, file := range files {
 // 		if !file.IsDir() {
-			
+
 // 			imageURL := baseURL + file.Name()
 
-		
-// 			name := file.Name()                     
-// 			summary := "auto imported image"       
-// 			link := imageURL                       
+// 			name := file.Name()
+// 			summary := "auto imported image"
+// 			link := imageURL
 
-			
 // 			_, err := db.Exec(`
-// 				INSERT INTO RecentUploads (name, summary, link) 
+// 				INSERT INTO RecentUploads (name, summary, link)
 // 				VALUES (?, ?, ?)
 // 			`, name, summary, link)
 // 			if err != nil {

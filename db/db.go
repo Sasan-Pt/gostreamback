@@ -13,9 +13,8 @@ var DB *sql.DB
 
 // ManPage represents the manPage table structure
 
-
 type ManPage struct {
-    DropDownMenu []string `json:"dropDownMenu"`
+	DropDownMenu []string `json:"dropDownMenu"`
 }
 
 type RecentImages struct {
@@ -25,141 +24,135 @@ type RecentImages struct {
 	Link    string `json:"link" db:"link"`
 }
 type Episode struct {
-    ID            int    `json:"id"`
-    SeriesID      int    `json:"series_id"`
-    EpisodeNumber int    `json:"episode_number"`
-    ReleaseDate   string `json:"release_date"`
-    Title         string `json:"title"`
-    SeasonNumber  int    `json:"season_number"`
+	ID            int    `json:"id"`
+	SeriesID      int    `json:"series_id"`
+	EpisodeNumber int    `json:"episode_number"`
+	ReleaseDate   string `json:"release_date"`
+	Title         string `json:"title"`
+	SeasonNumber  int    `json:"season_number"`
 }
 
 func InitDB() error {
-    var err error
-    DB, err = sql.Open("sqlite3", "./api.db")
-    if err != nil {
-        return err
-    }
+	var err error
+	DB, err = sql.Open("sqlite3", "./api.db")
+	if err != nil {
+		return err
+	}
 
-    DB.SetMaxOpenConns(10)
-    DB.SetMaxIdleConns(5)
+	DB.SetMaxOpenConns(10)
+	DB.SetMaxIdleConns(5)
 
-    if err := CreateTables(); err != nil {
-        return err
-    }
-    if err := CreateImageTable(); err != nil {
-        return err
-    }
+	if err := CreateTables(); err != nil {
+		return err
+	}
+	if err := CreateImageTable(); err != nil {
+		return err
+	}
 
-
-    return nil
+	return nil
 }
 
-
 func CreateTables() error {
-    createManPageTable := `
+	createManPageTable := `
     CREATE TABLE IF NOT EXISTS manPage (
 		menu TEXT
     )`
 
-    _, err := DB.Exec(createManPageTable)
-    if err != nil {
-        return err
-    }
+	_, err := DB.Exec(createManPageTable)
+	if err != nil {
+		return err
+	}
 
-    return nil
+	return nil
 }
 func CreateImageTable() error {
-    createImageTable := `
+	createImageTable := `
     CREATE TABLE IF NOT EXISTS RecentUploads (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         summary TEXT,
         link TEXT
     )`
-    _, err := DB.Exec(createImageTable)
-    return err
+	_, err := DB.Exec(createImageTable)
+	return err
 }
 
 func GetRecentUploadsFromDB() ([]RecentImages, error) {
-    rows, err := DB.Query("SELECT id, name, summary, link FROM RecentUploads  LIMIT 15 OFFSET 0")
-    if err != nil {
-        return nil, fmt.Errorf("failed to query database: %w", err)
-    }
-    defer rows.Close()
+	rows, err := DB.Query("SELECT id, name, summary, link FROM RecentUploads  LIMIT 15 OFFSET 0")
+	if err != nil {
+		return nil, fmt.Errorf("failed to query database: %w", err)
+	}
+	defer rows.Close()
 
-    fmt.Println(rows,"rows")
-    var images []RecentImages
-    for rows.Next() {
-        var img RecentImages
-        
-        if err := rows.Scan(&img.ID, &img.Name, &img.Summary, &img.Link); err != nil {
-            return nil, fmt.Errorf("failed to scan row: %w", err)
-        }
-        
-        images = append(images, img)
-    }
-    
-    if err = rows.Err(); err != nil {
-        return nil, fmt.Errorf("error during row iteration: %w", err)
-    }
-    fmt.Println(images,"images")
-    
-    return images, nil
+	fmt.Println(rows, "rows")
+	var images []RecentImages
+	for rows.Next() {
+		var img RecentImages
+
+		if err := rows.Scan(&img.ID, &img.Name, &img.Summary, &img.Link); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		images = append(images, img)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during row iteration: %w", err)
+	}
+	fmt.Println(images, "images")
+
+	return images, nil
 }
-
-
 
 func GetAllManPages() ([]ManPage, error) {
-    rows, err := DB.Query("SELECT menu FROM manPage")
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+	rows, err := DB.Query("SELECT menu FROM manPage")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-    var pages []ManPage
-    for rows.Next() {
-        var rawJSON string
-        var mp ManPage
+	var pages []ManPage
+	for rows.Next() {
+		var rawJSON string
+		var mp ManPage
 
-     
-        if err := rows.Scan(&rawJSON); err != nil {
-            return nil, err
-        }
+		if err := rows.Scan(&rawJSON); err != nil {
+			return nil, err
+		}
 
-        if err := json.Unmarshal([]byte(rawJSON), &mp); err != nil {
-            return nil, err
-        }
+		if err := json.Unmarshal([]byte(rawJSON), &mp); err != nil {
+			return nil, err
+		}
 
-        pages = append(pages, mp)
-    }
-    return pages, nil
+		pages = append(pages, mp)
+	}
+	return pages, nil
 }
 
-func getEpisodes() ([]Episode, error) {
-    rows, err := DB.Query(`
+func GetEpisodes(startDate string, endDate string) ([]Episode, error) {
+	rows, err := DB.Query(`
     SELECT e.id, e.series_id, e.episode_number, e.release_date, s.title, s.season_number
     FROM Episodes e
     JOIN Series s ON s.id = e.series_id
     WHERE e.release_date BETWEEN ? AND ?
     ORDER BY e.release_date ASC
-`, "2025-09-01", "2025-09-30")
+`, startDate, endDate)
 
-if err != nil {
-    log.Fatal(err)
-}
-defer rows.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
 
-var episodes []Episode
-for rows.Next() {
-    var ep Episode
-    if err := rows.Scan(&ep.ID, &ep.SeriesID, &ep.EpisodeNumber, &ep.ReleaseDate, &ep.Title, &ep.SeasonNumber); err != nil {
-        log.Fatal(err)
-    }
-    episodes = append(episodes, ep)
+	var episodes []Episode
+	for rows.Next() {
+		var ep Episode
+		if err := rows.Scan(&ep.ID, &ep.SeriesID, &ep.EpisodeNumber, &ep.ReleaseDate, &ep.Title, &ep.SeasonNumber); err != nil {
+			log.Fatal(err)
+		}
+		episodes = append(episodes, ep)
+	}
+	return episodes, nil
 }
-return episodes, nil
-}
-
 
 // GetManPageByID retrieves a specific manPage by ID
 // func GetManPageByID(id int) (*ManPage, error) {
@@ -197,4 +190,3 @@ return episodes, nil
 // 	_, err := DB.Exec("DELETE FROM manPage WHERE id = ?", id)
 // 	return err
 // }
-

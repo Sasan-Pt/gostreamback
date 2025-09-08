@@ -9,7 +9,9 @@ import (
 
 func Schedule(router *gin.Engine) {
 	router.GET("/schedule", func(c *gin.Context) {
-		mainPage, err := db.GetAllManPages()
+		startDate := c.Query("startDate")
+		endDate := c.Query("endDate")
+		schedule, err := db.GetEpisodes(startDate, endDate)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to fetch data from database: " + err.Error(),
@@ -18,7 +20,7 @@ func Schedule(router *gin.Engine) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"data": mainPage,
+			"data": schedule,
 		})
 	})
 
