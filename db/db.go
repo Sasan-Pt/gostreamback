@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -22,6 +23,14 @@ type RecentImages struct {
 	Name    string `json:"name" db:"name"`
 	Summary string `json:"summary" db:"summary"`
 	Link    string `json:"link" db:"link"`
+}
+type Episode struct {
+    ID            int    `json:"id"`
+    SeriesID      int    `json:"series_id"`
+    EpisodeNumber int    `json:"episode_number"`
+    ReleaseDate   string `json:"release_date"`
+    Title         string `json:"title"`
+    SeasonNumber  int    `json:"season_number"`
 }
 
 func InitDB() error {
@@ -124,6 +133,31 @@ func GetAllManPages() ([]ManPage, error) {
         pages = append(pages, mp)
     }
     return pages, nil
+}
+
+func getEpisodes() ([]Episode, error) {
+    rows, err := DB.Query(`
+    SELECT e.id, e.series_id, e.episode_number, e.release_date, s.title, s.season_number
+    FROM Episodes e
+    JOIN Series s ON s.id = e.series_id
+    WHERE e.release_date BETWEEN ? AND ?
+    ORDER BY e.release_date ASC
+`, "2025-09-01", "2025-09-30")
+
+if err != nil {
+    log.Fatal(err)
+}
+defer rows.Close()
+
+var episodes []Episode
+for rows.Next() {
+    var ep Episode
+    if err := rows.Scan(&ep.ID, &ep.SeriesID, &ep.EpisodeNumber, &ep.ReleaseDate, &ep.Title, &ep.SeasonNumber); err != nil {
+        log.Fatal(err)
+    }
+    episodes = append(episodes, ep)
+}
+return episodes, nil
 }
 
 
